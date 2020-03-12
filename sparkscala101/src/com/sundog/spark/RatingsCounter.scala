@@ -27,7 +27,7 @@ object RatingsCounter {
     val results = ratings.countByValue()
     
     // Sort the resulting map of (rating, count) tuples
-    val sortedResults = results.toSeq.sortBy(_._1)
+    val sortedResults = results.toSeq.sortBy(_._1) // (_._1: sort by first value in pairs)
     
     // Print each result on its own line.
     sortedResults.foreach(println)
