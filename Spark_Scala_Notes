@@ -1,4 +1,4 @@
-Spark_Scala_Typing_Notes
+Spark Scala Typing Notes
 
 # Section 2. Scala scratch:
 	+ MapReduce:
@@ -67,7 +67,6 @@ Spark_Scala_Typing_Notes
 			+ sc.value() to get the object back.
 
 	+ Find the most popular superhero in a social graph.
-		+  
 
 	+ Superhero degrees of separation.
 		+ Iterative BFS implementation in Spark 
