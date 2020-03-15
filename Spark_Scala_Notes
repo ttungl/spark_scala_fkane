@@ -1,0 +1,134 @@
+Spark_Scala_Typing_Notes
+
+# Section 2. Scala scratch:
+	+ MapReduce:
+		+ map() can be used to apply any function to every item in a collection.
+		+ reduce() can be used to combine together all the items in a collection using some function.
+		+ filter() can remove stuff you don't need.
+
+# Section 3. Spark Basics
+	+ Built based on Scala.
+	+ Resilient Distributed Dataset (RDD): encapsulates very large dataset, then apply transformations and actions to perform this data. Using sc.parallelize(data) method to create an RDD.
+		+ RDD Transformations: 
+			+ map: apply the function to each element of the whole RDD. 
+			+ flatmap: apply the function to each elements of the RDD as in map transformation. The difference is that flatmap will return multiple values for each element in the input RDD. 
+			+ filter: return a new RDD with only the elements that pass the filter condition.
+			+ distinct: return distinct rows if you have duplicate rows.
+			+ sample: sampling for testing
+			+ union, intersection, subtract, cartesian
+			
+		+ RDD Actions:
+			+ collect: retrieve all elements of the RDD computed and it is assigned to the output.
+			+ count
+			+ countByValue: unique id.
+			+ take
+			+ top
+			+ reduce: you want to add/multiply all the values for a given key together.
+			* Notes: Nothing actually happens in your driver program until an action is called. 
+
+
+	+ Spark internals:
+		+ stage 1: textFile() + map() function
+		+ stage 2: transformation functions
+		+ final stage: the tasks are scheduled across the clusters and executed.
+
+	+ Key/value in RDD:
+		+ res = rdd.map(x=>(x, 1))
+		+ using functions: 
+			+ reduceByKey(): combine values with the same key using some function.
+				+ rdd.reduceByKey((x,y)=>x+y) --> adds them up. 
+			+ groupByKey(): group values with the same key.
+			+ sortByKey(): sort RDD by key values.
+			+ keys(), values(): create an RDD of just the keys or values.
+			+ join, rightOuterJoin, leftOuterJoin, cogroup, subtractByKey.
+			+ With key/value data, use `mapValues()` and `flatMapValues()` if your transformation doesn't affect the keys.
+
+	+ Filtering RDD: to remove out the data you don't need.
+	+ Map vs FlatMap:
+		+ Map(): transforms each element of an RDD into one new element.
+		+ Flatmap(): can create many new elements from each one.
+
+	+ countByValue() the "hard way": 
+		+ rdd.map(x => (x, 1)).reduceByKey((x, y) => x+y)
+
+	+ Problem 1: Total amount spent by customer
+		+ Strategy:
+			+ split each comma-delimited line into fields.
+			+ map each line to key/value pair of customer ID and dollar amount.
+			+ use reduceByKey to add up amount spent by customer ID
+			+ collect() the results and print them out.
+
+# Section 4: Advanced Spark Examples
+	+ Most popular movies.
+	+ Use Broadcast variables to display movie names.
+		+ Broadcast var: takeing a chunk of data and explicitly sending it to all of the nodes in our clusters ready for whenever it needs it. 
+			+ Broadcast objects to the executors, they're always there whenever needed. 
+			+ sc.broadcast() to ship off whatever you want.
+			+ sc.value() to get the object back.
+
+	+ Find the most popular superhero in a social graph.
+		+  
+
+	+ Superhero degrees of separation.
+		+ Iterative BFS implementation in Spark 
+			+ A BFS iteration as a map and reduce job
+				+ The mapper: 
+					+ creates new nodes for each connection of gray nodes, with a distance incremented by one, color gray, and no connections.
+					+ color the gray node we just processed black.
+					+ copies the node itself into the results.
+				+ The reducer:
+					+ combines together all nodes for the same hero ID
+					+ preserves the shortest distance and the darkest color found
+					+ preserves the list of connections from the original node.
+			+ How do we know when we're done? 
+				+ An accumulator allows many executors to increment a shared value.
+					+ For example:
+						```var hitCounter : LongAccumulator("Hit Counter")```
+						+ This sets up a shared accumulator named "Hit Counter" with an initial value of 0.
+						+ for each iteration, if the character we're interested in is hit, we increment the hitCounter accumulator.
+						+ after each iteration, we check if hitCounter is greater than one - if so, we're done.
+
+		+ Iteratively process the RDD
+			+ Go through looking for gray nodes to expand.
+			+ Color nodes with black.
+			+ Update the distances as we go.
+
+		+ Introducing accumulators.
+
+	+ Item-based collaborative filtering in spark, cache(), persist()
+	+ Running similar movies script using Spark's cluster
+	+ Improve the quality of similar movies.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
