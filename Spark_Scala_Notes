@@ -1,12 +1,12 @@
 Spark Scala Typing Notes
 
-# Section 2. Scala scratch:
+### Section 2. Scala scratch:
 	+ MapReduce:
 		+ map() can be used to apply any function to every item in a collection.
 		+ reduce() can be used to combine together all the items in a collection using some function.
 		+ filter() can remove stuff you don't need.
 
-# Section 3. Spark Basics
+### Section 3. Spark Basics
 	+ Built based on Scala.
 	+ Resilient Distributed Dataset (RDD): encapsulates very large dataset, then apply transformations and actions to perform this data. Using sc.parallelize(data) method to create an RDD.
 		+ RDD Transformations: 
@@ -58,7 +58,7 @@ Spark Scala Typing Notes
 			+ use reduceByKey to add up amount spent by customer ID
 			+ collect() the results and print them out.
 
-# Section 4: Advanced Spark Examples
+### Section 4: Advanced Spark Examples
 	+ Most popular movies.
 	+ Use Broadcast variables to display movie names.
 		+ Broadcast var: takeing a chunk of data and explicitly sending it to all of the nodes in our clusters ready for whenever it needs it. 
@@ -162,7 +162,7 @@ Spark Scala Typing Notes
 		+ Invent a new similarity metric that takes the number of co-raters into account.
 		+ Use genre information in u.items to boost scores from movies in the same genre.
 
-# Section 5: Running Spark on a cluster
+### Section 5: Running Spark on a cluster
 	+ Package all the objects into one JAR file for deployment on the cluster.
 		+ Make sure there are no paths to your local filesystem used in your script. That's what HDFS, S3, etc. are for
 		+ Package up your scala project into a JAR file (using Export in the IDE)
@@ -290,14 +290,67 @@ Spark Scala Typing Notes
 				+ Or, use --jars with spark-submit to add individual libs that are on the master.
 				+ Try to just avoid using obscure package you don't need in the first place. 
 
+### Section 6: SparkSQL, DataFrames, DataSets
+	+ Working with structured data.
+		+ extends RDD to a ```DataFrame``` object.
+		+ Dataframes:
+			+ contain row objects.
+			+ run on SQL queries.
+			+ has a schema (leading to more efficient storage)
+			+ read and write to json, Hive, parquet.
+			+ communicates with JDBC/ODBC, Tableau.
+		+ DataSets:
+			+ A dataframe is just a dataset of row objects, Dataset[Row]. 
+			+ DataSets can explicitly wrap a given struct or type.
+				+ Dataset[Person]
+				+ Dataset[(string, Double)]
+			+ DataFrames schema is inferred at runtime;
+			+ Dataset can be inferred at compile time.
+				+ Faster detection of errors, and better optimization.
+			+ RDD can be converted to DataSets with .toDS()
 
-# Section 6: SparkSQL, DataFrames, Datasets
+			+ The trend in Spark is to use RDD's less, and DataSets more.
+			+ DataSets are more efficient:
+				+ they can be serialized very efficiently - even better than Kryo.
+				+ optimal execution plans can be determined at compile time.
+			+ DataSets allow for better interoperability.
+				+ MLLib and Spark Streaming are moving towards using DataSets instead of RDDs for their primary API.
+			+ DataSets simplify development.
+				+ you can perform most SQL operations on a dataset with one line.
+	
+	+ Using Spark SQL in Scala:
+		+ In spark 2.0.0, you create a SparkSession object instead of a SparkContext when using SparkSQL/DataSets.
+			+ You can get a SparkContext from this session, and ise it to issue SQL queries on your DataSets
+			+ Stop the session when you're done.
+		
+		+ Other stuff you can do with DataFrames:
+			`res.show()`
+			`res.select("fieldnames")`
+			`res.filter(res.("fieldnames") > 200)`
+			`res.groupBy(res("fieldnames")).mean()`
+			`res.rdd().map(mapperFunction)`
 
-# Section 7: Machine Learning with MLLib
+		+ Shell Access: 
+			+ SparkSQL exposes a JDBC/ODBC server (if you built Spark with Hive support).
+			+ Start it with sbin/start-thriftserver.sh
+			+ Listens on port 10000 by default.
+			+ Connect using bin/beeline -u jdbc:hive2://localhost:10000
+			+ At this point, you should have a SQL shell to SparkSQL.
+			+ You can create new tables, or query existing ones that were cached using hiveCtx.cacheTable("tableName").
+		+ User-Defined functions (UDF'S):
+			`import org.apache.spark.sql.functions.udf`
+			`val square = (x => x*x)`
+			`squaredDF = df.withColumn("square", square('value'))`
+		+ Example:
+			+ Use social network data, query it with SQL, and then use DataSets without SQL.
+			+ We re-do our popular movies example with DataSets to see how much simplier it is.
 
-# Section 8: Spark Streaming
 
-# Section 9: Intro to GraphX 
+### Section 7: Machine Learning with MLLib
+
+### Section 8: Spark Streaming
+
+### Section 9: Intro to GraphX 
 
 
 
