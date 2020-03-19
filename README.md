@@ -1,4 +1,4 @@
-Spark Scala Typing Notes
+# Spark Scala Typing Notes
 
 ### Section 2. Scala scratch:
 	+ MapReduce:
