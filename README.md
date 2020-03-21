@@ -513,7 +513,7 @@
 
 	+ Setup a Twitter account and run scala file.
 		+ Get keys and add to `twitter.txt`, then import properties with *twitter*.jar files in the SparkScala3. Finally, import file `PopularHashtags.scala`.
-		+ Created Twitter dev account, waiting for approval.
+		+ Created Twitter dev account, waiting for approval. So have to wait it for running `PopularHashtags.scala`.
 
 	+ Structured streaming
 		+ Spark 2 introduced "structured streaming"
