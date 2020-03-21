@@ -347,6 +347,57 @@
 
 
 ### Section 7: Machine Learning with MLLib
+	+ ML capabilities:
+		+ Feature extraction:
+			+ Term-Frequency/Inverse Document Frequency useful for search.
+		+ Basic statistics
+			+ Chi-squared test, Pearson or Spearman correlation, min, max, mean, variance.
+		+ Linear regression, logistic regression.
+		+ Support vector machines.
+		+ Naive Bayes classifier.
+		+ Decision Trees
+		+ K-means clustering.
+		+ Principle Component Analysis, Singular value decomposition.
+		+ Recommendations using Alternating Least Squares.
+	+ ML uses DataFrames
+		+ Previous API was called MLLib and used RDD and some specialized data structures.
+		+ MLLib is deprecated in Spark 3.
+		+ Newer "ML" library uses DataFrames for everything
+	+ More depth:
+		+ Ref book: Advanced Analytics with Spark from O'Reilly.
+			+ examples with Spark SDK
+			+ General ML courses
+
+	+ Movies recommendations
+		`val data = spark.read.textFile("../ml-100k/u.data")`
+		`val ratings = data.map(x => x.split("\t")).map(x => Ratings(x(0).toInt, x(1).toInt, x(2).toDouble)).toDF()`
+		`val als = new ALS()
+					.setMaxIter(5)
+					.setRegParam(0.01)
+					.setUserCol("userId")
+					.setItemCol("movidId")
+					.setRatingCol("rating")`
+		`val model = als.fit(ratings)`
+	+ Run MovieRecommendationsALS.jar with spark-submit.
+			~/$ spark-submit --class com.sundog.spark.MovieRecommendationsALS MRALS.jar 260
+			
+			20/03/20 18:27:20 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+			Loading movie names...
+
+			Training recommendation model...
+
+			Top 10 recommendations for user ID 260:
+			(I'll Do Anything (1994),10.982834)
+			(House of Yes, The (1997),9.521749)
+			(White Man's Burden (1995),9.212082)
+			(April Fool's Day (1986),9.024569)
+			(Warriors of Virtue (1997),8.992435)
+			(Bitter Moon (1992),8.663096)
+			(Braindead (1992),8.61241)
+			(Ghost in the Shell (Kokaku kidotai) (1995),8.443162)
+			(Faster Pussycat! Kill! Kill! (1965),8.396412)
+			(Half Baked (1998),8.389826)
+
 
 ### Section 8: Spark Streaming
 
