@@ -400,6 +400,131 @@
 
 
 ### Section 8: Spark Streaming
+	+ Concepts:
+		+ Analyzes continual streams of data
+			+ common example: processing log data from a website or server
+		+ Data is aggregated and analyzed at some given interval
+		+ Can take data fed to some port, Amazon Kinesis, HDFS, Kafla, Flume, others.
+		+ "Checkpointing" stores state to disk periodically for fault tolerance.
+		+ A "Dstream" object breaks up the stream into distinct RDD.
+		+ Simple example:
+			```
+			val stream = new StreamingContext(conf, Seconds(1))
+			val lines = stream.socketTextStream("localhost", 8888)
+			val errors = lines.filter(_.contains("error"))
+			errors.print()
+			```
+			+ This listens to log data sent into port 8888, one second at a time, and prints out error lines.
+			+ You need to kick off the job explicitly:
+				```
+				stream.start()
+				stream.awaitTermination()
+				``` 
+			+ Remember your RDD's only contain one little chunk of incoming data.
+			+ "Windowed operations" can combine results from multiple batches over some sliding time window.
+				+ Refer to window(), reduceByWindow(), reduceByKeyAndWindow()
+			+ updateStateByKey()
+				+ Lets you maintain a state across many batches as time goes on.
+					+ For example, running counts of some events.
+
+	+ Let's stream:
+		+ Run a spark streaming script that monitors live tweets from Twitter, and keeps track of the most popular hashtags as Tweets are received.
+			+ Need to get an API key and access token.
+			+ Allow us to stream Twitter data in realtime.
+			+ Do this at https://apps.twitter.com/
+		+ Create a twitter.txt file in your workspace
+			+ On each line, specify a name and your own consumer key & access token information.
+			+ For example, substitute in your own keys & tokens.
+				```
+				consumerKey AX*
+				consumerSecret 9E*
+				accessToken 37*
+				accessTokenSecret 8*
+				``` 
+		+ Step 1:
+			+ Get a twitter stream and extract just the messages themselves. 
+				```
+				val tweets = TwitterUtils.createStream(ssc, None)
+				val statuse = tweets.map(status => status.getText())
+
+				Vote for #McLaren!
+				Vote for #Ferrari
+				#Ferrari is the best.
+				...
+				``` 
+		+ Step 2:
+			+ Create a new Dstream that has every individual word as its own entry.
+			+ We use flatMap() for this.
+				```
+				val tweetwords = statuses.flatMap(tweetText => tweetText.split(" "))
+
+				Vote
+				for
+				#McLaren
+				..
+				```
+		+ Step 3:
+			+ Eliminate anything that's not a hashtag
+				+ use the filter() function for this
+				```
+				val hashtags = tweetwords.filter(word => word.startsWith("#"))
+
+				#McLaren
+				#Ferrari
+				#Ferrari
+				...
+				```
+		+ Step 4:
+			+ Convert our RDD of hashtags to key/value pairs
+			+ We can count them up with a reduce operation.
+			```
+			val hashtagKV = hashtags.map(hashtag => (hashtag, 1))
+
+			(#McLaren, 1)
+			(#Ferrari, 1)
+			(#Ferrari, 1)
+			...
+			```
+		+ Step 5:
+			+ Count up the results over a sliding window.
+			+ A reduce operation adds up all of the values for a given key
+				+ a key is a unique hashtag, and each value is 1
+				+ by adding up all the "1"s associated with each instance of hashtag, we get the count of that hashtag.
+			+ reduceByKeyAndWindow performs this reduce operation over a given window and slide interval.
+				```
+				val hashtagCounts = hashtagKV.reduceByKeyAndWindow((x,y) => x+y, (x,y)=>x-y, Seconds(300), Seconds(1))
+
+				(#McLaren, 1)
+				(#Ferrari, 2)
+				...
+				```
+		+ Step 6:
+			+ Sort and output the results.
+			+ The counts are in the second value of each tuple, so we sort by the ._2 element.
+				```
+				val sortedResults = hashtagCounts.transform(rdd => rdd.sortBy(x => x._2, false))
+
+				sortedResults.print
+
+				(#Lamborghini, 3)
+				(#Ferrari, 2)
+				...
+				```
+
+	+ Setup a Twitter account and run scala file.
+		+ Get keys and add to `twitter.txt`, then import properties with *twitter*.jar files in the SparkScala3. Finally, import file `PopularHashtags.scala`.
+		+ Created Twitter dev account, waiting for approval.
+
+	+ Structured streaming
+		+ Spark 2 introduced "structured streaming"
+		+ uses DataSets as its primary API 
+		+ Imagine a DataSet that just keeps getting appended to forever, and you query it whenever you want.
+		+ Streaming is now real-time and not based on "micro-batches".
+			```
+			val inputDF = spark.readStream.json("s3://logs")
+			inputDF.groupBy($"action", window($"time", "1 hour")).count()
+					.writeStream.format("jdbc").start("jdbc:mysql//..")
+			```
 
 ### Section 9: Intro to GraphX 
 
